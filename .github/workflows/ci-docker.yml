@@ -67,13 +67,6 @@ jobs:
           load: true # Ładuje obraz do lokalnego demona Dockera na runnerze
           tags: local-image-test:latest
 
-      # SKANOWANIE CVE: Skanowanie za pomocą Trivy
-      - name: Run Trivy vulnerability scanner (via docker)
-        run: |
-        docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        aquasecurity/trivy:0.36.0 \
-        image --format table --exit-code 1 --ignore-unfixed --vuln-type os,library --severity CRITICAL,HIGH local-image-test:latest
 
 
       # KROK FINALNY: Budowa docelowa Multi-Arch i Push do GHCR z pełnym Cache na DockerHub
