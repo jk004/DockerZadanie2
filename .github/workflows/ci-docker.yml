@@ -58,7 +58,7 @@ jobs:
             type=ref,event=branch
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
 
-      # KROK TESTOWY (Warunek C): Budowa obrazu lokalnie pod jedną architekturę w celu przeskanowania
+      # KROK TESTOWY: Budowa obrazu lokalnie pod jedną architekturę w celu przeskanowania
       - name: Build local image for CVE scanning
         uses: docker/build-push-action@v6
         with:
@@ -66,7 +66,7 @@ jobs:
           load: true # Ładuje obraz do lokalnego demona Dockera na runnerze
           tags: local-image-test:latest
 
-      # SKANOWANIE CVE (Warunek C): Skanowanie za pomocą Trivy
+      # SKANOWANIE CVE: Skanowanie za pomocą Trivy
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -77,8 +77,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
-      # KROK FINALNY (Warunek A i B): Budowa docelowa Multi-Arch i Push do GHCR z pełnym Cache na DockerHub
-      # POPRAWIONE: Zmiana 'id.meta' na 'steps.meta'
+      # KROK FINALNY: Budowa docelowa Multi-Arch i Push do GHCR z pełnym Cache na DockerHub
       - name: Build and push Multi-Arch Docker image
         uses: docker/build-push-action@v6
         with:
