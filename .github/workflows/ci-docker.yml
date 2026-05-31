@@ -26,15 +26,15 @@ jobs:
 
       # Konfiguracja QEMU (wymagane do emulacji architektury arm64 na runnerze amd64)
       - name: Set up QEMU
-        uses: actions/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v2
 
       # Konfiguracja Buildx (silnik do budowania obrazów wieloarchitekturalnych i obsługi cache)
       - name: Set up Docker Buildx
-        uses: actions/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2
 
       # Logowanie do GitHub Container Registry (GHCR)
       - name: Log in to GHCR
-        uses: actions/login-action@v3
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
@@ -42,8 +42,9 @@ jobs:
 
       # Logowanie do DockerHub (potrzebne wyłącznie do zapisu/odczytu cache)
       - name: Log in to DockerHub
-        uses: actions/login-action@v3
+        uses: docker/login-action@v3
         with:
+          registry: ghcr.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
@@ -68,7 +69,7 @@ jobs:
 
       # SKANOWANIE CVE: Skanowanie za pomocą Trivy
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.9.4
         with:
           image-ref: 'local-image-test:latest'
           format: 'table'
