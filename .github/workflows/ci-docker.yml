@@ -65,7 +65,8 @@ jobs:
       - name: Build local image for CVE scanning
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context:
+          file: ./Dockerfile1
           load: true # Ładuje obraz do lokalnego demona Dockera na runnerze
           tags: local-image-test:latest
 
