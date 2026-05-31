@@ -69,7 +69,7 @@ jobs:
 
       # SKANOWANIE CVE: Skanowanie za pomocą Trivy
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0.9.4
+        uses: aquasecurity/trivy-action@latest
         with:
           image-ref: 'local-image-test:latest'
           format: 'table'
