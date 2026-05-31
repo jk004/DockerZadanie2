@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# Author: Jan Kwapinski
+
+FROM alpine:3.23 AS builder
+WORKDIR /app
+COPY app.sh cities.txt ./
+RUN apk add --no-cache curl ca-certificates \
+  && chmod +x /app/app.sh
+
+FROM alpine:3.23 AS runtime
+WORKDIR /app
+RUN apk add --no-cache curl ca-certificates
+COPY --from=builder /app/app.sh /app/app.sh
+COPY --from=builder /app/cities.txt /app/cities.txt
+RUN chmod +x /app/app.sh
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD ["/bin/sh","-c","/app/app.sh -v >/dev/null 2>&1 || exit 1"]
+
+ENV PORT=8080
+# z roota dac usera?
+# zrobic expose?
+ENTRYPOINT ["/bin/sh","-c","/app/app.sh"] #command zmienic zamiast
+LABEL org.opencontainers.image.authors="Jan Kwapinski"
+

@@ -1,0 +1,94 @@
+name: Build, Test CVE and Push Multi-Arch Image
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  GHCR_REGISTRY: ghcr.io
+  # GitHub automatycznie zamieni to na "nazwa-uzytkownika/nazwa-repozytorium" w małych literach
+  IMAGE_NAME: ${{ github.repository }}
+  # TODO: ZMIEŃ NA SWOJĄ NAZWĘ UŻYTKOWNIKA DOCKER HUB DLA CACHE
+  DOCKERHUB_OWNER: jk11111
+  CACHE_REPO: weather-app-cache
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Konfiguracja QEMU (wymagane do emulacji architektury arm64 na runnerze amd64)
+      - name: Set up QEMU
+        uses: actions/setup-qemu-action@v3
+
+      # Konfiguracja Buildx (silnik do budowania obrazów wieloarchitekturalnych i obsługi cache)
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      # Logowanie do GitHub Container Registry (GHCR)
+      - name: Log in to GHCR
+        uses: actions/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Logowanie do DockerHub (potrzebne wyłącznie do zapisu/odczytu cache)
+      - name: Log in to DockerHub
+        uses: actions/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Generowanie metadanych (tagów) dla obrazu produkcyjnego na GHCR
+      - name: Extract metadata for GHCR
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+
+      # KROK TESTOWY (Warunek C): Budowa obrazu lokalnie pod jedną architekturę w celu przeskanowania
+      - name: Build local image for CVE scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true # Ładuje obraz do lokalnego demona Dockera na runnerze
+          tags: local-image-test:latest
+
+      # SKANOWANIE CVE (Warunek C): Skanowanie za pomocą Trivy
+      # Wyjdzie z błędem (exit code 1), jeśli znajdzie podatności CRITICAL lub HIGH
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'local-image-test:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      # KROK FINALNY (Warunek A i B): Budowa docelowa Multi-Arch i Push do GHCR z pełnym Cache na DockerHub
+      # Wykona się TYLKO, jeśli Trivy przejdzie pomyślnie
+      - name: Build and push Multi-Arch Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ id.meta.outputs.tags }}
+          labels: ${{ id.meta.outputs.labels }}
+          # Konfiguracja cache w trybie registry / max z dedykowanym repozytorium na DockerHub
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_OWNER }}/${{ env.CACHE_REPO }}:cache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_OWNER }}/${{ env.CACHE_REPO }}:cache,mode=max

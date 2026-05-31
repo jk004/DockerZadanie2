@@ -1,0 +1,5 @@
+Poland,Warsaw
+Poland,Krakow
+Poland,Lublin
+USA,New York
+UK,London
