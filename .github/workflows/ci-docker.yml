@@ -67,7 +67,7 @@ jobs:
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasecurity/trivy:0.36.0 \
+            ghcr.io/aquasecurity/trivy:latest \
             image --format table --exit-code 1 --ignore-unfixed --vuln-type os,library --severity CRITICAL,HIGH local-image-test:latest
 
 
