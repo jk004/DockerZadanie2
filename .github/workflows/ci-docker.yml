@@ -71,6 +71,7 @@ jobs:
             image --format table --exit-code 1 --ignore-unfixed --vuln-type os,library --severity CRITICAL,HIGH local-image-test:latest
 
 
+
       - name: Build and push Multi-Arch Docker image
         uses: docker/build-push-action@v6
         with:
