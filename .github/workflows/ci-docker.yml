@@ -13,13 +13,13 @@ env:
   CACHE_REPO: weather-app-cache
 
 jobs:
-  build-scan:
+ build-scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     outputs:
-      scan_ok: ${{ steps.set-scan-output.outputs.scan_ok }}
+      scan_ok: ${{ steps.trivy.outputs.scan_ok }}
 
     steps:
       - name: Checkout repository
@@ -47,19 +47,12 @@ jobs:
             -v /var/run/docker.sock:/var/run/docker.sock \
             ghcr.io/aquasecurity/trivy:latest \
             image --format json --ignore-unfixed --vuln-type os,library --severity CRITICAL,HIGH local-image-test:latest > trivy.json || true
-          # If CRITICAL found, set scan_ok=false; else true
           CRITICAL_COUNT=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy.json)
           if [ "$CRITICAL_COUNT" -gt 0 ]; then
-            echo "found_critical=true" >> $GITHUB_OUTPUT
             echo "scan_ok=false" >> $GITHUB_OUTPUT
           else
-            echo "found_critical=false" >> $GITHUB_OUTPUT
             echo "scan_ok=true" >> $GITHUB_OUTPUT
           fi
-
-      - name: Set-scan-output (placeholder)
-        id: set-scan-output
-        run: echo "scan_ok=${{ steps.trivy.outputs.scan_ok }}" >/dev/null
 
   build-and-push:
     runs-on: ubuntu-latest
