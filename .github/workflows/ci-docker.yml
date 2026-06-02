@@ -13,13 +13,14 @@ env:
   CACHE_REPO: weather-app-cache
 
 jobs:
- build-scan:
+  build-scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     outputs:
       scan_ok: ${{ steps.trivy.outputs.scan_ok }}
+
 
     steps:
       - name: Checkout repository
