@@ -1,3 +1,13 @@
+Instrukcja Uruchomienia github actions
+git add .github/workflows/ci-docker.yml
+git commit -m "update1?"
+git push origin main
+
+Odp.
+Wersjonowany cache per-branch zapobiega mieszaniu sie cache między gałęziami i ułatwia odtwrzanie buildów, podczas gdy pojedynczy tag :cache jest szybszy, kosztem izolacji.
+
+
+
 Budowanie obrazu
 docker build -f Dockerfile1 -t myweather:latest .
 
