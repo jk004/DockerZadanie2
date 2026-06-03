@@ -5,7 +5,8 @@ git push origin main
 
 Odp.
 Wybór wersjonowanego cache'u dedykowanego dla konkretnej gałęzi (per-branch cache) wynika z oficjalnych dobrych praktyk optymalizacji Docker Buildx oraz GitHub Actions.
-Izolacja pamięci podręcznej per-branch zapobiega problemowi nadpisywania (cache cache-pollution) oraz tzw. "mieszaniu się" warstw między niezależnymi funkcjonalnościami (feature branchami). Zastosowanie trybu mode=max gwarantuje, że eksportowane są metadane wszystkich warstw. Pozwala to  skrócić czas wykonywania procesu w gałęzi.
+Izolacja pamięci podręcznej per-branch zapobiega problemowi nadpisywania (cache cache-pollution) oraz tzw. "mieszaniu się" warstw między niezależnymi funkcjonalnościami (feature branchami).
+Zastosowanie trybu mode=max gwarantuje, że eksportowane są metadane wszystkich warstw. Pozwala to  skrócić czas wykonywania procesu w gałęzi.
 
 Budowanie obrazu
 docker build -f Dockerfile1 -t myweather:latest .
